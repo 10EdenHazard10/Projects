@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="mystyle.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body onload="getBestSales()">
+<div id="title">
+	<a href="index.html"><< </a>&nbsp;&nbsp;Best Sellers
+</div>
+<div class="container">
+	<div class="row">
+		<div id="mytable">Loading.....</div>
+	</div>
+	<div class="row">
+		<div class="col-100">
+			<div id="paging"></div>
+		</div>
+	</div>
+</div>
+<script>
+var limit = 20;
+function getBestSales(page){	
+	var myBestSell = {
+			'limit' : limit,
+			'page' : page
+		};
+	var BestSellStr = JSON.stringify(myBestSell);
+	$.post("best_sellers.php",{BestSell : BestSellStr},function(data){
+		if (data == ""){
+			document.getElementById("mytable").innerHTML ="";
+			document.getElementById("paging").innerHTML = "";
+			return;
+		}
+		var parsedJSON = JSON.parse(data);					
+		var table = "<br><table><tr><th>Product Code</th><th>Product Name</th><th>Total Amount Sold</th></tr>";
+		$.each(parsedJSON, function(key, item) {
+			table = table + "<tr id="+(key % 2 ? 'colorrow' : '')+"><td>"+item._id+"</td><td>"+item.pname+"</td><td>"+item.totalAmtSold+"</td></tr>"; 
+		});	
+		table = table+"</table>";
+		document.getElementById("mytable").innerHTML = table;
+		paging(page);
+	});
+}
+function paging(page){
+		if (isNaN(page)){
+			page = 1;
+		}
+		
+		var next  = (parseInt(page) + 1);
+		var prev  = (parseInt(page) - 1);		
+		var range = 10; // number of pages to display in the navigation bar	
+		var start_movement = 7; //starts shifting page numbers in navigation bar after this amount
+		var start_offset = Math.ceil(range / 2); //start point of navigation bar from current page	
+		$.get("best_sellers_count.php",function(data){
+				var mydata = JSON.parse(data);
+				var total = mydata.total;
+				var total_num_pages = Math.ceil(total/limit);
+				var page_string = '';
+				page_string = "<div class='pagination'>";	
+				if (page >= start_movement)
+				{
+					start = page-start_offset;
+				}
+				else
+				{
+					start = 1;
+				}
+				page_string = page_string + '<span>Previous</span>';
+				if ((page < total_num_pages - start_offset) && (total_num_pages > start+range))
+				{
+					for (var x=start;x<=start+range;x++)
+					{	
+						if (x > 0)
+						{
+							page_string = page_string + '<span class='+ (page == x ? 'active' : '')+'>'+(x < 10 ? '0' : '')+x+'</span>';
+						}
+					}    
+				}
+				else
+				{
+					for (var x=total_num_pages-range;x<=total_num_pages;x++)
+					{
+						if (x > 0)
+						{
+							page_string = page_string + '<span class='+ (page == x ? 'active' : '')+'>'+(x < 10 ? '0' : '')+x+'</span>';
+						}
+					}	
+				}
+				page_string = page_string + '<span>Next</span>';
+				page_string = page_string + "</div>";
+				document.getElementById("paging").innerHTML = page_string;
+				$('.pagination span').click(function(e) { 					
+					if (e.target.innerText == "Previous"){
+					   getBestSales(prev);			
+					}
+					else if (e.target.innerText == "Next"){
+					   getBestSales(next);			
+					}
+					else{
+						getBestSales(parseInt(e.target.innerText));
+					}
+					window.scrollTo({top: 0});
+				});
+		});		
+	}
+</script>
+</body>
+</html>

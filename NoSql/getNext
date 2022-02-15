@@ -1,0 +1,15 @@
+<?php
+	$_id = $_REQUEST['_id'];
+	require_once "../vendor/autoload.php";	
+	$collection = (new MongoDB\Client)->mflix_lab->movies;
+	$result = $collection->findOne(['_id' => ['$gt' => new MongoDB\BSON\ObjectID($_id)]],['sort' => ['_id' => 1]]);
+	if ($result){
+		$myObj=new stdClass();
+		$myObj->_id = (string)$result['_id'];
+		$myObj->title = isset($result['title']) ? $result['title'] : "";
+		$myObj->year = isset($result['year']) ? $result['year'] : "";
+		$myObj->runtime = isset($result['runtime']) ? $result['runtime'] : "";
+		$myObj->posterpath = isset($result['PosterPath']) ? $result['PosterPath'] : "no_poster.png";
+		echo json_encode($myObj);
+	}
+?>

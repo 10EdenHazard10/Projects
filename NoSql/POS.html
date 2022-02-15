@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<link rel="stylesheet" type="text/css" href="mystyle.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body onload="init()">
+<div id="title">
+	<a href="index.html"> <<</a>&nbsp;&nbsp;POS Screen
+</div>
+<div class="container">
+	<div class="row">
+		<label for="xpcode">Product Code:</label>
+		<input type="text" id="xpcode" name="xpcode" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus>		
+		<button class="s_btn" onclick="product_search()"><i class="fa fa-search"></i></button>
+		<label id="pname_nf" style="color : red;"></label>
+	</div>
+	<div class="row">
+		<div id="myModal" class="modal">
+		<!-- Modal content -->
+			<div id="title_pick">					
+					<div>Pick-A-Product Screen<div id="close">X</div></div>					
+			</div>
+			<div class="modal-content">				
+				<div class="row">
+					<label for="psearch">Search name:</label>
+					<input type="text" id="psearch" name="psearch" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">	
+				</div>
+				<div class="row">
+					<div id="inst_search">LEFT MOUSE click on your desired product <b>OR</b> use the UP & DOWN arrow to go to desired product, and then press the ENTER key to select the product</div>
+				</div>
+				<div class="row">
+					<div id="pro_table"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div id="inst">UP/DOWN arrow to go to desired product, LEFT/RIGHT arrow to decrease or increase quantity</div>
+	</div>
+	<div class="row" style = "margin-top : 10px;">
+		<div class="table-wrapper" id="table"></div>
+	</div>
+	<div class="row">
+		<div id="summary">
+		</div>  	
+	</div>	
+	<div class="row">
+		<div id="saveit">
+			<input type="button" value="Save Transaction" id="save" onclick="saveit()">
+			<input type="button" value="Clear Transaction" id="cancel" onclick="cancelit()">
+		</div>  
+	</div>
+</div>
+<script src="myScript.js"></script>
+</body>
+</html>

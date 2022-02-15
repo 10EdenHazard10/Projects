@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="mystyle.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div id="title">
+	<a href="index.html"><< </a>&nbsp;&nbsp;Sales for Product Code
+ </div>
+<div class="container">
+	<div class="row">
+		<div class="col-100">
+			<label for="pcode">Product Code</label>
+			<input type="text" id="pcode" name="pcode" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus>
+			<input type="button" value="Search" class="btn" onclick="getSaleByProduct()">
+		</div>
+    </div>
+	<div id='pname' style="padding : 10px,10px,10px,0px;margin-top : 10px;color : red;"></div>
+	<div class="row">
+		<div id="mytable"></div>
+	</div>
+	<div class="row">
+		<div class="col-100">
+			<div id="paging"></div>
+		</div>
+	</div>
+</div>
+<script>
+var limit = 20;
+function getSaleByProduct(page){	
+	var pcode = document.getElementById('pcode').value;
+	var mySaleByProd = {
+			'pcode': pcode,
+			'limit' : limit,
+			'page' : page
+		};
+	var SaleByProdStr = JSON.stringify(mySaleByProd);
+	$.post("sales_by_product_try.php",{SaleByProd : SaleByProdStr},function(data){
+		if (data == ""){
+			document.getElementById("mytable").innerHTML ="";
+			document.getElementById('pname').innerHTML = "This product was never sold.";
+			document.getElementById("paging").innerHTML = "";
+			return;
+		}
+		var parsedJSON = JSON.parse(data);					
+		var table = "<br><table><tr><th>Sales Date</th><th>Amt Sold</th><th>Sales Total</th></tr>";
+		$.each(parsedJSON, function(key, item) {
+			table = table + "<tr id="+(key % 2 ? 'colorrow' : '')+"><td>"+item.date+"</td><td>"+item.count+"</td><td>"+item.subTotal+"</td></tr>"; 
+		});	
+		table = table+"</table>";
+		document.getElementById("mytable").innerHTML = table;
+		paging(page);
+		thesearch(pcode);
+	});
+}
+function paging(page){
+		if (isNaN(page)){
+			page = 1;
+		}
+		var next  = (parseInt(page) + 1);
+		var prev  = (parseInt(page) - 1);		
+		var range = 10; // number of pages to display in the navigation bar	
+		var start_movement = 7; //starts shifting page numbers in navigation bar after this amount
+		var start_offset = Math.ceil(range / 2); //start point of navigation bar from current page	
+		var pcode = document.getElementById('pcode').value;
+		var mySaleByProd = {
+			'pcode': pcode
+		};
+		var SaleByProdStr = JSON.stringify(mySaleByProd);
+		$.post("sales_by_product_try_count.php",{SaleByProd : SaleByProdStr},function(data){
+				var mydata = JSON.parse(data);
+				var total = mydata.total;
+				var total_num_pages = Math.ceil(total/limit);
+				var page_string = '';
+				page_string = "<div class='pagination'>";	
+				if (page >= start_movement)
+				{
+					start = page-start_offset;
+				}
+				else
+				{
+					start = 1;
+				}
+				page_string = page_string + '<span>Previous</span>';
+				if ((page < total_num_pages - start_offset) && (total_num_pages > start+range))
+				{
+					for (var x=start;x<=start+range;x++)
+					{	
+						if (x > 0)
+						{
+							page_string = page_string + '<span class='+ (page == x ? 'active' : '')+'>'+(x < 10 ? '0' : '')+x+'</span>';
+						}
+					}    
+				}
+				else
+				{
+					for (var x=total_num_pages-range;x<=total_num_pages;x++)
+					{
+						if (x > 0)
+						{
+							page_string = page_string + '<span class='+ (page == x ? 'active' : '')+'>'+(x < 10 ? '0' : '')+x+'</span>';
+						}
+					}	
+				}
+				page_string = page_string + '<span>Next</span>';
+				page_string = page_string + "</div>";
+				document.getElementById("paging").innerHTML = page_string;
+				$('.pagination span').click(function(e) { 					
+					if (e.target.innerText == "Previous"){
+					   getSaleByProduct(prev);			
+					}
+					else if (e.target.innerText == "Next"){
+					   getSaleByProduct(next);			
+					}
+					else{
+						getSaleByProduct(parseInt(e.target.innerText));
+					}
+					window.scrollTo({top: 0});
+				});
+		});		
+	}
+function thesearch(code){
+	$.post("getproduct.php",{m_code : code},function(data){	
+		var parsedJSON = JSON.parse(data);
+		if (parsedJSON.Name != '')
+		{			
+			document.getElementById('pname').innerHTML = parsedJSON['Name'];			
+		}
+	});
+	
+}
+</script>
+</body>
+</html>

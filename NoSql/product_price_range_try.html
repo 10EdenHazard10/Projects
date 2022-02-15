@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="mystyle.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div id="title_center">
+	<a href="index.html"> <<</a>&nbsp;&nbsp;Product Price Range Search
+ </div>
+<div class="container_center">
+    <div class="bordered">
+	<div class="row">
+		<div class="col-50">
+			<label for="min">Min Price</label>
+			<input type="text" id="min" name="min" autofocus>
+		</div>
+		<div class="col-50">
+			<label for="max">Max Price</label>
+			<input type="text" id="max" name="max">
+		</div>	
+    </div>
+	<div class="row">
+		<div class="col-100">
+			<input type="button" value="Search" id="ven_submit" onclick="getProdPriceRange()">
+		</div>
+	</div>
+	<div class="row">
+		<div id="info"></div>
+	</div>
+	</div>
+	<div class="row">
+		<div class="col-100">
+			<div id="mytable"></div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-100">
+			<div id="paging"></div>
+		</div>
+	</div>
+</div>
+<script>
+	var limit = 20;
+	function getProdPriceRange(page){
+		var min = document.getElementById('min').value;
+		var max = document.getElementById('max').value;
+		var myProdPriceRange = {
+				'min': min,
+				'max': max,
+				'page' : page,
+				'limit' : limit
+			};
+		var ProdPriceRangeStr = JSON.stringify(myProdPriceRange);
+		$.post("product_price_range_try.php",{ProdPriceRange : ProdPriceRangeStr},function(data){
+				if (data == ""){
+					document.getElementById("mytable").innerHTML ="";
+					return;
+				}
+				var parsedJSON = JSON.parse(data);					
+				var table = "<table><tr><th>Code</th><th>Name</th><th>Cost</th><th>Price</th><th>OnHand</th><th>Vendors</th></tr>";
+				$.each(parsedJSON, function(key, item) {
+					table = table + "<tr id="+(key % 2 ? 'colorrow' : '')+"><td>"+item.code+"</td><td>"+item.name+"</td><td>"+item.cost+"</td><td>"+item.price+"</td><td>"+item.onhand+"</td><td>"+item.vendors+"</td></tr>"; 
+				});	
+				table = table+"</table>";
+				document.getElementById("mytable").innerHTML = table;
+			    paging(page);					
+			});
+	}
+	function paging(page){
+		if (isNaN(page)){
+			page = 1;
+		}
+		var next  = (parseInt(page) + 1);
+		var prev  = (parseInt(page) - 1);		
+		var range = 10; // number of pages to display in the navigation bar	
+		var start_movement = 7; //starts shifting page numbers in navigation bar after this amount
+		var start_offset = Math.ceil(range / 2); //start point of navigation bar from current page	
+		var min = document.getElementById('min').value;
+		var max = document.getElementById('max').value;
+		var myProdPriceRange = {
+				'min': min,
+				'max': max
+			};
+		var ProdPriceRangeStr = JSON.stringify(myProdPriceRange);
+		$.post("product_price_range_try_count.php",{ProdPriceRange : ProdPriceRangeStr},function(data){
+				var total = parseInt(JSON.parse(data));
+				var total_num_pages = Math.ceil(total/limit);
+				var page_string = '';
+				page_string = "<div class='pagination'>";	
+				if (page >= start_movement)
+				{
+					start = page-start_offset;
+				}
+				else
+				{
+					start = 1;
+				}
+				page_string = page_string + '<span>Previous</span>';
+				if ((page < total_num_pages - start_offset) && (total_num_pages > start+range))
+				{
+					for (var x=start;x<=start+range;x++)
+					{	
+						if (x > 0)
+						{
+							page_string = page_string + '<span class='+ (page == x ? 'active' : '')+'>'+(x < 10 ? '0' : '')+x+'</span>';
+						}
+					}    
+				}
+				else
+				{
+					for (var x=total_num_pages-range;x<=total_num_pages;x++)
+					{
+						if (x > 0)
+						{
+							page_string = page_string + '<span class='+ (page == x ? 'active' : '')+'>'+(x < 10 ? '0' : '')+x+'</span>';
+						}
+					}	
+				}
+				page_string = page_string + '<span>Next</span>';
+				page_string = page_string + "</div>";
+				document.getElementById("paging").innerHTML = page_string;
+				$('.pagination span').click(function(e) { 					
+					if (e.target.innerText == "Previous"){
+					   getProdPriceRange(prev);			
+					}
+					else if (e.target.innerText == "Next"){
+					   getProdPriceRange(next);			
+					}
+					else{
+						getProdPriceRange(parseInt(e.target.innerText));
+					}
+					window.scrollTo({top: 0});
+				});
+			document.getElementById("info").innerHTML = "Number of documents found :"+total+"<br>Current page number is :"+page+"<br>Number of pages are :"+total_num_pages;
+		});		
+	}
+</script>
+<script src="myScript.js"></script>
+</body>
+</html>
+
